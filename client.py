@@ -56,19 +56,19 @@ async def call_mcp_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, 
         command="python",
         args=["mcp_server.py"],
     )
-    
+
     try:
         # 使用 async with 确保资源正确管理
         async with stdio_client(server_params) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
                 # 初始化连接
                 await session.initialize()
-                
+
                 # 调用工具
                 result = await session.call_tool(tool_name, arguments)
-                
+
                 # 提取工具返回的内容
-                if hasattr(result, 'content') and result.content:
+                if hasattr(result, "content") and result.content:
                     # 获取第一个文本内容
                     for content_item in result.content:
                         if isinstance(content_item, TextContent):
@@ -82,10 +82,11 @@ async def call_mcp_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, 
                     return {"result": str(result)}
                 else:
                     return {"result": str(result)}
-                    
+
     except Exception as e:
         print(f"❌ 调用工具时出错: {e}")
         import traceback
+
         traceback.print_exc()
         return {"error": str(e)}
 
@@ -139,10 +140,7 @@ JSON 格式：
 
         response = client.chat.completions.create(
             model=QWEN_MODEL,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": question}
-            ],
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": question}],
             # DashScope 兼容模式可能不支持 response_format，改为通过提示约束
             temperature=0,
         )
@@ -232,6 +230,7 @@ async def main():
         except Exception as e:
             print(f"\n❌ 错误: {str(e)}")
             import traceback
+
             traceback.print_exc()
 
 
