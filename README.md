@@ -64,34 +64,34 @@ LLM 给出最终答案
 
 ## 📁 项目结构
 
-```及其互相之间的关系网络的数据库
+```
+Simple-MCP/
+├── mcp_server.py          # MCP 服务器，定义可用工具和数据库
+├── client.py              # MCP 客户端，与 LLM 交互并调用工具
+├── test_query_users.py    # 单元测试脚本，测试查询功能
+├── requirements.txt       # Python 依赖
+└── README.md              # 项目文档
+```
+
+### 核心文件说明
+
+**mcp_server.py**
+- 定义 13 个用户及其互相之间的关系网络的数据库
 - 实现 8 个 MCP 工具：
   - **查询工具**：`query_users`（多条件查询）、`get_user_by_id`（按 ID 获取）
   - **关系查询工具**：`get_user_relationships`（所有关系）、`get_relationship_between_users`（两人关系）
   - **亲属查询工具**：`get_spouse`（配偶）、`get_children`（子女）、`get_parents`（父母）、`get_relatives_by_relation`（按关系类型查询）
 - 使用 FastMCP 框架启动 MCP 服务器
-- 支持图结构存储和查询用户关系网络  # 单元测试脚本，测试查询功能
-├── requirements.txt       # Python 依赖
-└── 多轮工具调用流程（支持最多 10 轮）：
+- 支持图结构存储和查询用户关系网络
+
+**client.py**
+- 连接本地 Ollama 模型 (qwen3:14b)
+- 实现多轮工具调用流程（支持最多 10 轮）：
   1. **工具决策**：LLM 根据用户问题或已收集的信息决定是否调用工具
   2. **工具调用**：调用 MCP 工具获取数据
   3. **迭代**：将结果添加到上下文，继续下一轮决策
   4. **答案生成**：当 LLM 认为信息足够时，生成最终答案
 - 完整的工具调用历史管理
-### 核心文件说明
-
-**mcp_server.py**
-- 定义 13 个用户的数据库
-- 实现两个 MCP 工具：
-  - `query_users`: 多条件用户查询（支持 6 种参数）
-  - `get_user_by_id`: 根据 ID 获取单个用户
-- 使用 FastMCP 框架启动 MCP 服务器
-
-**client.py**
-- 连接本地 Ollama 模型 (qwen3:14b)
-- 实现两阶段 LLM 处理：
-  1. 工具决策：LLM 根据用户问题决定调用哪个工具
-  2. 答案生成：LLM 根据工具结果生成最终答案
 - 实时显示详细的日志信息
 
 **test_query_users.py**
