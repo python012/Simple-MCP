@@ -8,11 +8,12 @@
 
 **核心特性：**
 - ✅ 基于 MCP 协议的工具调用框架
+- ✅ **多轮工具调用**：LLM 可根据需要进行多次工具调用来收集信息（新增！）
 - ✅ 本地 Ollama 大模型支持（完全离线）
 - ✅ 自然语言理解和意图识别
 - ✅ 多条件灵活查询（支持 6 种查询参数）
 - ✅ 完整的日志记录和可视化
-- ✅ 两步式 LLM 处理流程
+- ✅ 智能的多步工具调用流程
 
 ---
 
@@ -31,35 +32,52 @@
 
 ### MCP 在本项目中的作用
 
+**多轮工具调用流程**：
 ```
 用户输入 (自然语言)
     ↓
-LLM 理解和决策
+LLM 第1轮：理解问题并决策
+    ↓ (如果需要调用工具)
+MCP 工具调用 (query_users / get_user_relationships / get_spouse 等)
     ↓
-MCP 工具调用 (query_users / get_user_by_id)
+数据库查询执行，获得结果
+    ↓ (将结果加入上下文)
+LLM 第2轮：基于结果决策
+    ↓ (如果还需要信息)
+MCP 工具调用 (可以调用不同的工具)
     ↓
-数据库查询执行
-    ↓
-结果返回给 LLM
-    ↓
-LLM 生成最终答案
+... (重复，最多10轮)
+    ↓ (当收集足够信息)
+LLM 给出最终答案
     ↓
 用户获得结果
 ```
+
+**多轮调用示例：**
+- 问题：「Charlie 的父母都有哪些子女？」
+  1. 第1轮：调用 `get_parents(3)` 获取 Charlie 的父母（Alice 和 Bob）
+  2. 第2轮：调用 `get_children(1)` 获取 Alice 的子女
+  3. 第3轮：调用 `get_children(2)` 获取 Bob 的子女（或合并结果）
+  4. 最后：LLM 综合所有信息生成答案
 
 ---
 
 ## 📁 项目结构
 
-```
-Simple-MCP/
-├── mcp_server.py          # MCP 服务器，定义可用工具和数据库
-├── client.py              # MCP 客户端，与 LLM 交互并调用工具
-├── test_query_users.py    # 单元测试脚本，测试查询功能
+```及其互相之间的关系网络的数据库
+- 实现 8 个 MCP 工具：
+  - **查询工具**：`query_users`（多条件查询）、`get_user_by_id`（按 ID 获取）
+  - **关系查询工具**：`get_user_relationships`（所有关系）、`get_relationship_between_users`（两人关系）
+  - **亲属查询工具**：`get_spouse`（配偶）、`get_children`（子女）、`get_parents`（父母）、`get_relatives_by_relation`（按关系类型查询）
+- 使用 FastMCP 框架启动 MCP 服务器
+- 支持图结构存储和查询用户关系网络  # 单元测试脚本，测试查询功能
 ├── requirements.txt       # Python 依赖
-└── README.md              # 项目文档
-```
-
+└── 多轮工具调用流程（支持最多 10 轮）：
+  1. **工具决策**：LLM 根据用户问题或已收集的信息决定是否调用工具
+  2. **工具调用**：调用 MCP 工具获取数据
+  3. **迭代**：将结果添加到上下文，继续下一轮决策
+  4. **答案生成**：当 LLM 认为信息足够时，生成最终答案
+- 完整的工具调用历史管理
 ### 核心文件说明
 
 **mcp_server.py**
@@ -269,6 +287,28 @@ python client.py
 ---
 
 ## 🎯 功能介绍
+
+### 关系查询工具集（8 个工具用于查询用户关系）
+
+| 工具名 | 功能 | 返回内容 |
+|------|------|--------|
+| `get_user_relationships` | 查询用户的所有关系 | 用户及其所有关系列表 |
+| `get_relationship_between_users` | 查询两个用户之间的关系 | 两人之间的具体关系 |
+| `get_spouse` | 查询配偶 | 用户的配偶信息 |
+| `get_children` | 查询所有子女 | 子女列表及信息 |
+| `get_parents` | 查询父母 | 父母列表及信息 |
+| `get_relatives_by_relation` | 按关系类型查询亲戚 | 特定类型亲戚列表 |
+
+**多轮查询例子：**
+- 「Alice 的配偶的 email 是什么？」
+  - 第 1 轮：调用 `get_spouse(1)` → 获得 Bob 的完整信息（包括 email）
+  - 答案：bob@example.com
+
+- 「Charlie 的父母分别有哪些子女？」
+  - 第 1 轮：调用 `get_parents(3)` → 获得父母 Alice(ID=1) 和 Bob(ID=2)
+  - 第 2 轮：调用 `get_children(1)` → 获得 Alice 的子女
+  - 第 3 轮：调用 `get_children(2)` → 获得 Bob 的子女
+  - 答案：综合结果回答
 
 ### query_users 工具 - 多条件用户查询
 
