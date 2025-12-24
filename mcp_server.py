@@ -15,6 +15,16 @@ USERS = {
     1: {"id": 1, "name": "Alice", "email": "alice@example.com", "age": 30},
     2: {"id": 2, "name": "Bob", "email": "bob@example.com", "age": 25},
     3: {"id": 3, "name": "Charlie", "email": "charlie@example.com", "age": 35},
+    4: {"id": 4, "name": "David", "email": "david.wilson@example.com", "age": 28},
+    5: {"id": 5, "name": "Emma", "email": "emma.johnson@example.com", "age": 32},
+    6: {"id": 6, "name": "Frank", "email": "frank.smith@example.com", "age": 27},
+    7: {"id": 7, "name": "Grace", "email": "grace.lee@example.com", "age": 31},
+    8: {"id": 8, "name": "Henry", "email": "henry.brown@example.com", "age": 29},
+    9: {"id": 9, "name": "Ivy", "email": "ivy.martinez@example.com", "age": 26},
+    10: {"id": 10, "name": "Jack", "email": "jack.taylor@example.com", "age": 33},
+    11: {"id": 11, "name": "Karen", "email": "karen.anderson@example.com", "age": 28},
+    12: {"id": 12, "name": "Leo", "email": "leo.thompson@example.com", "age": 30},
+    13: {"id": 13, "name": "Mia", "email": "mia.garcia@example.com", "age": 25},
 }
 
 
@@ -54,14 +64,47 @@ mcp = FastMCP("UserDatabaseServer", instructions="提供用户数据库查询服
 @mcp.tool()
 async def query_users(params: QueryUsersParams, ctx: Context[ServerSession, None]) -> QueryUsersResult:
     """
-    根据条件查询用户信息
+    根据多种条件灵活查询用户信息。支持按姓名、年龄范围、邮箱等进行过滤，可组合多个条件进行高级查询。
 
     Args:
-        params: 查询参数，包括 name, min_age, max_age, email_contains
-        ctx: MCP 上下文，用于日志和错误处理
+        params (QueryUsersParams): 查询参数对象
+            - name (Optional[str]): 按姓名模糊查询，不区分大小写
+            - min_age (Optional[int]): 最小年龄（包含），用于年龄范围查询的下界
+            - max_age (Optional[int]): 最大年龄（包含），用于年龄范围查询的上界
+            - email_contains (Optional[str]): 邮箱包含的字符串，模糊匹配，不区分大小写
+        ctx (Context): MCP 上下文，用于日志记录和错误处理
 
     Returns:
-        QueryUsersResult: 包含查询结果的对象
+        QueryUsersResult: 查询结果对象
+            - status (str): 查询状态，成功返回 "success"
+            - count (int): 匹配的用户数量
+            - users (List[UserResult]): 符合条件的用户列表
+
+    Examples:
+        # 示例1: 按姓名查询
+        >>> params = QueryUsersParams(name="Alice")
+        >>> result = await query_users(params, ctx)
+        # 返回所有包含 "Alice" 的用户
+
+        # 示例2: 按年龄范围查询
+        >>> params = QueryUsersParams(min_age=25, max_age=30)
+        >>> result = await query_users(params, ctx)
+        # 返回年龄在 25-30 之间的所有用户
+
+        # 示例3: 组合条件查询（姓名 + 年龄范围）
+        >>> params = QueryUsersParams(name="David", min_age=27, max_age=32)
+        >>> result = await query_users(params, ctx)
+        # 返回名字包含 "David" 且年龄在 27-32 之间的用户
+
+        # 示例4: 按邮箱域名查询
+        >>> params = QueryUsersParams(email_contains="@example.com")
+        >>> result = await query_users(params, ctx)
+        # 返回所有邮箱包含 "@example.com" 的用户
+
+        # 示例5: 查询所有用户
+        >>> params = QueryUsersParams()
+        >>> result = await query_users(params, ctx)
+        # 返回所有用户
     """
     try:
         await ctx.info(f"🔍 收到查询请求: {params.model_dump_json()}")

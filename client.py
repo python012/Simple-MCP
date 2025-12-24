@@ -17,11 +17,11 @@ from mcp.client.stdio import stdio_client, StdioServerParameters
 from mcp.client.session import ClientSession
 from mcp.types import TextContent
 
-# 加载环境变量
+# 加载环境变量，.env 文件中的环境变量会被加载到 os.environ 中
 load_dotenv()
 
 # 1. 配置
-QWEN_MODEL = "qwen-flash"
+QWEN_MODEL = "qwen-plus"
 
 # 优先使用 ALIYUN_MODEL_API_KEY，其次兼容 OPENAI_API_KEY 环境变量
 _api_key = os.getenv("ALIYUN_MODEL_API_KEY") or os.getenv("OPENAI_API_KEY")
