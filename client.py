@@ -41,7 +41,7 @@ async def call_mcp_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, 
         工具执行结果
     """
     import subprocess
-    
+
     # 配置 MCP 服务器参数
     server_params = StdioServerParameters(
         command="python",
@@ -91,23 +91,23 @@ class NaturalLanguageQuery:
     def _read_and_display_server_logs(self):
         """读取并显示 MCP 服务器日志文件中的新内容"""
         log_file = Path("mcp_server.log")
-        
+
         if not log_file.exists():
             return
-        
+
         try:
             file_size = log_file.stat().st_size
-            
+
             # 如果文件有新内容，读取新增部分
             if file_size > self.last_log_position:
                 with open(log_file, "r", encoding="utf-8") as f:
                     f.seek(self.last_log_position)
                     new_content = f.read()
-                    
+
                     if new_content.strip():
                         print(f"\n[MCP 服务器日志]:")
                         print(new_content, end="")
-                
+
                 self.last_log_position = file_size
         except Exception as e:
             pass  # 静默处理读取失败
@@ -139,8 +139,14 @@ class NaturalLanguageQuery:
                         # name 和 email_contains 保持为字符串
                         converted[key] = str(arguments[key])
 
-        elif tool_name in ["get_user_by_id", "get_user_relationships", "get_spouse", 
-                           "get_relatives_by_relation", "get_children", "get_parents"]:
+        elif tool_name in [
+            "get_user_by_id",
+            "get_user_relationships",
+            "get_spouse",
+            "get_relatives_by_relation",
+            "get_children",
+            "get_parents",
+        ]:
             # user_id 必须是整数
             if "user_id" in arguments:
                 try:
@@ -148,7 +154,7 @@ class NaturalLanguageQuery:
                 except (ValueError, TypeError):
                     print(f"[警告] user_id 无法转换为整数")
                     converted["user_id"] = arguments["user_id"]
-            
+
             # relation_type 保持为字符串（用于 get_relatives_by_relation）
             if "relation_type" in arguments and arguments["relation_type"] is not None:
                 converted["relation_type"] = str(arguments["relation_type"])
@@ -245,7 +251,7 @@ JSON 格式示例：
         messages: list[ChatCompletionMessageParam] = [
             {"role": "system", "content": system_prompt},
         ]
-        
+
         # 构建用户消息，包含历史工具调用信息
         if conversation_history and len(conversation_history) > 0:
             # 有历史调用，构建完整上下文
@@ -352,11 +358,9 @@ JSON 格式示例：
                         self._read_and_display_server_logs()
 
                         # 保存到历史记录
-                        conversation_history.append({
-                            "tool": tool_name,
-                            "arguments": arguments,
-                            "result": tool_result
-                        })
+                        conversation_history.append(
+                            {"tool": tool_name, "arguments": arguments, "result": tool_result}
+                        )
 
                         # 继续下一轮
                         continue
