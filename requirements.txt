@@ -1,17 +1,11 @@
 # MCP (Model Context Protocol) SDK
 mcp>=1.0.0
 
-# Aliyun Qwen API Client
+# Ollama OpenAI Compatible Client
 openai>=1.0.0
-
-# Environment variables
-python-dotenv>=0.19.0
 
 # Data validation (required by MCP)
 pydantic>=2.0.0
 
-# Async HTTP client (for potential future HTTP transport)
-httpx>=0.24.0
-
-# ASGI server (optional, for HTTP transport)
+# Async HTTP client
 uvicorn>=0.23.0
